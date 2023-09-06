@@ -7,11 +7,10 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Graph;
 using Azure.Identity;
 using Microsoft.Graph.Models;
-using System;
 
 namespace CustomerRegistration
 {
-    public class CRegister
+    public class CustomerRegisterFunction
     {
         string tenantId = "69380036-9b93-4add-a715-9e8921d06841";
         string clientId = "97c063f7-39b4-469d-9861-0daf9c08adf2";
