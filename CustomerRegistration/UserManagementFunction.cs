@@ -8,20 +8,28 @@ using Azure.Identity;
 using Microsoft.Graph.Models;
 using Microsoft.Graph.Models.ODataErrors;
 using System;
+using Microsoft.Azure.Cosmos;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace CustomerRegistration
 {
     public class UserManagementFunction
     {
+        private readonly CosmosClient _cosmosClient;
         private readonly ClientSecretCredential _clientCredentials;
-        public UserManagementFunction(ClientSecretCredential clientCredentials) => _clientCredentials = clientCredentials;
+
+        public UserManagementFunction(CosmosClient cosmosClient, ClientSecretCredential clientCredentials)
+        {
+            _cosmosClient = cosmosClient;
+            _clientCredentials = clientCredentials;
+        }
 
         [FunctionName("Register")]
         public async Task<ActionResult> Register([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "user")] UserRequest req, ILogger log)
         {
             using var client = new GraphServiceClient(_clientCredentials);
 
-            //7cbb0f77-2f62-4f47-9e11-8552b69a5658
             var requestBody = new Microsoft.Graph.Models.User
             {
                 AccountEnabled = true,
@@ -51,20 +59,36 @@ namespace CustomerRegistration
 
 
         [FunctionName("Update")]
-        public ActionResult Update([HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = "user")] UserUpdateRequest req, ILogger log)
+        public async Task<ActionResult> Update([HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = "user")] User user, ILogger log)
         {
             using var client = new GraphServiceClient(_clientCredentials);
+
+            var userContainer = _cosmosClient.GetContainer("interviewappdb", "User");
+            var userCompanyContainer = _cosmosClient.GetContainer("interviewappdb", "Usercompanyassoc");
+
+            var currentUser = await GetUserAsync(userContainer, user);
+            var companyLinks = await GetCompanyLinksAsync(userCompanyContainer, user);
+
+            // update fields with new data
+            currentUser.firstName = user.firstName;
+            currentUser.lastName = user.lastName;
+
+            companyLinks.ForEach(link => link.Active = user.active);
 
             var requestBody = new Microsoft.Graph.Models.User
             {
                 AccountEnabled = true,
-                DisplayName = req.DisplayName,
-                MailNickname = req.MailNickname,
-                UserPrincipalName = req.UserPrincipalName,
+                DisplayName = user.firstName + " " + user.lastName,
+                MailNickname = user.firstName,
+                UserPrincipalName = user.firstName + "@iamdhanukagmail.onmicrosoft.com",
             };
             try
             {
-                var result = client.Users[req.Id.ToString()].PatchAsync(requestBody);
+                var result = client.Users[user.id].PatchAsync(requestBody);
+
+                await userContainer.UpsertItemAsync(currentUser, new PartitionKey(currentUser.id));
+                var updateLinksTasks = companyLinks.Select(companyLink => userCompanyContainer.UpsertItemAsync(companyLink, new PartitionKey(companyLink.RecruiterId)));
+                await Task.WhenAll(updateLinksTasks);
             }
             catch (ODataError ex)
             {
@@ -75,6 +99,38 @@ namespace CustomerRegistration
 
 
             return new OkResult();
+        }
+
+        private async Task<List<Usercompanyassoc>> GetCompanyLinksAsync(Microsoft.Azure.Cosmos.Container userContainer, User user)
+        {
+            QueryDefinition queryDefinition = new QueryDefinition("SELECT * FROM c WHERE c.RecruiterId = @recruiterId")
+               .WithParameter("@recruiterId", user.id);
+
+            using var feedIterator = userContainer.GetItemQueryIterator<Usercompanyassoc>(queryDefinition);
+
+            var companyLinks = new List<Usercompanyassoc>();
+            while (feedIterator.HasMoreResults)
+            {
+                var response = await feedIterator.ReadNextAsync();
+                foreach (var link in response) companyLinks.Add(link);
+            }
+            return companyLinks;
+        }
+
+        private async Task<User> GetUserAsync(Container userContainer, User user)
+        {
+            QueryDefinition queryDefinition = new QueryDefinition("SELECT * FROM c WHERE c.id = @recruiterId")
+               .WithParameter("@recruiterId", user.id);
+
+            using var feedIterator = userContainer.GetItemQueryIterator<User>(queryDefinition);
+
+            var users = new List<User>();
+            while (feedIterator.HasMoreResults)
+            {
+                var response = await feedIterator.ReadNextAsync();
+                foreach (var u in response) users.Add(u);
+            }
+            return users.FirstOrDefault();
         }
     }
 }

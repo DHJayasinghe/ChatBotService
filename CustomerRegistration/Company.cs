@@ -32,4 +32,5 @@ public class User
     public string photoUrl { set; get; }
     public string jobtitle { get; set; }
     public bool superUser { get; set; }
+    public bool active { get; set; }
 }

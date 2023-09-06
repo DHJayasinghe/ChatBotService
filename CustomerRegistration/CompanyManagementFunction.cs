@@ -62,7 +62,7 @@ public class CompanyManagementFunction
             CompanyId = company.id,
             RecruiterId = user.id,
             Active = true
-        }, new PartitionKey(company.id));
+        }, new PartitionKey(user.id));
     }
 
     private async Task<bool> SaveUserAsync(User user, Container clientContainer, ILogger logger)
