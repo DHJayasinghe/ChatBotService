@@ -22,7 +22,7 @@ namespace CustomerRegistration
             using var client = new GraphServiceClient(_clientCredentials);
 
             //7cbb0f77-2f62-4f47-9e11-8552b69a5658
-            var requestBody = new User
+            var requestBody = new Microsoft.Graph.Models.User
             {
                 AccountEnabled = true,
                 DisplayName = req.DisplayName,
@@ -55,7 +55,7 @@ namespace CustomerRegistration
         {
             using var client = new GraphServiceClient(_clientCredentials);
 
-            var requestBody = new User
+            var requestBody = new Microsoft.Graph.Models.User
             {
                 AccountEnabled = true,
                 DisplayName = req.DisplayName,

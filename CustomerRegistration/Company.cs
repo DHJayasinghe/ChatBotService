@@ -19,4 +19,17 @@ public class Company
     public DateTime creationDate { get; set; }
     public bool success { get; set; } = false;
     public bool isJobSync { get; set; }
+    public List<User> listUser { get; set; }
+}
+
+public class User
+{
+    public string id { get; set; }
+    public string firstName { get; set; }
+    public string lastName { get; set; }
+    public string emailAddress { get; set; }
+    public string phone { set; get; }
+    public string photoUrl { set; get; }
+    public string jobtitle { get; set; }
+    public bool superUser { get; set; }
 }
