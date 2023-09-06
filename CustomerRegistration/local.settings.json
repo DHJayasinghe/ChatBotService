@@ -5,9 +5,11 @@
     "FUNCTIONS_WORKER_RUNTIME": "dotnet",
     "AzureAD:TenantId": "AD_TENANT_ID",
     "AzureAD:ClientId": "CLIENT_ID",
-    "AzureAD:ClientSecret": "CLIENT_SECRET"
+    "AzureAD:ClientSecret": "CLIENT_SECRET",
+    "AzureSignalRConnectionString": "SIGNALR_CONNECTION_STRING",
   },
   "ConnectionStrings": {
-    "CosmosDB": "COSMOSDB_CONNECTION_STRING"
+    "CosmosDB": "COSMOSDB_CONNECTION_STRING",
+    "ServiceBus": "SERVICEBUS_CONNECTION_STRING"
   }
 }

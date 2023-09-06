@@ -1,4 +1,5 @@
 ﻿using Azure.Identity;
+using Azure.Messaging.ServiceBus;
 using Microsoft.Azure.Cosmos;
 using Microsoft.Azure.Functions.Extensions.DependencyInjection;
 using Microsoft.Extensions.Configuration;
@@ -16,5 +17,6 @@ public class Program : FunctionsStartup
 
         services.AddSingleton(new ClientSecretCredential(configuration["AzureAD:TenantId"], configuration["AzureAD:ClientId"], configuration["AzureAD:ClientSecret"]));
         services.AddSingleton(new CosmosClient(configuration.GetConnectionString("CosmosDB")));
+        services.AddSingleton(new ServiceBusClient(configuration.GetConnectionString("ServiceBus")));
     }
 }
