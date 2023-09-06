@@ -7,15 +7,14 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Azure.Cosmos;
 using System.Collections.Generic;
 using System.Linq;
-using Microsoft.Extensions.Configuration;
 
 namespace CustomerRegistration;
 
 public class CompanyManagementFunction
 {
-    private readonly string _connectionString;
+    private readonly CosmosClient _cosmosClient;
 
-    public CompanyManagementFunction(IConfiguration configuration) => _connectionString = configuration.GetConnectionString("CosmosDB");
+    public CompanyManagementFunction(CosmosClient cosmosClient) => _cosmosClient = cosmosClient;
 
     [FunctionName("CompanyManagementFunction")]
     public async Task<IActionResult> Run(
@@ -24,9 +23,8 @@ public class CompanyManagementFunction
     {
         var companyId = Guid.NewGuid();
         var companyDatabaseName = $"{req.Name}_{companyId}";
-        CosmosClient client = new CosmosClient(_connectionString);
 
-        var database = await client.CreateDatabaseAsync(companyDatabaseName);
+        var database = await _cosmosClient.CreateDatabaseAsync(companyDatabaseName);
         await CreateContainersAsync(database.Database, new List<string> { "Client", "ClientChat", "ClientSchedule", "Company", "Interviewing", "InterviewsChat", "InterviewsSchedule", "Job", "Questionairres" });
 
         return new OkObjectResult(companyDatabaseName);

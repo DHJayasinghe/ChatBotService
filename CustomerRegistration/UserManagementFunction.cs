@@ -13,15 +13,13 @@ namespace CustomerRegistration
 {
     public class UserManagementFunction
     {
-        string tenantId = "69380036-9b93-4add-a715-9e8921d06841";
-        string clientId = "97c063f7-39b4-469d-9861-0daf9c08adf2";
-        string clientSecret = "nrs8Q~VcMNNZHrGHQEJbol8cdOpnbCxs9AALIb9h";
+        private readonly ClientSecretCredential _clientCredentials;
+        public UserManagementFunction(ClientSecretCredential clientCredentials) => _clientCredentials = clientCredentials;
 
         [FunctionName("Register")]
         public async Task<ActionResult> Register([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "user")] UserRequest req, ILogger log)
         {
-            var clientSecretCredentials = new ClientSecretCredential(tenantId, clientId, clientSecret);
-            GraphServiceClient client = new GraphServiceClient(clientSecretCredentials);
+            using var client = new GraphServiceClient(_clientCredentials);
 
             //7cbb0f77-2f62-4f47-9e11-8552b69a5658
             var requestBody = new User
@@ -40,6 +38,8 @@ namespace CustomerRegistration
             {
                 var result = await client.Users.PostAsync(requestBody);
                 var userId = result.Id; // save this ID for update
+
+                return new OkObjectResult(userId);
             }
             catch (ODataError ex)
             {
@@ -47,17 +47,13 @@ namespace CustomerRegistration
                     return new BadRequestObjectResult(ex.Error.Message);
                 throw;
             }
-
-
-            return new OkResult();
         }
 
 
         [FunctionName("Update")]
         public ActionResult Update([HttpTrigger(AuthorizationLevel.Anonymous, "patch", Route = "user")] UserUpdateRequest req, ILogger log)
         {
-            var clientSecretCredentials = new ClientSecretCredential(tenantId, clientId, clientSecret);
-            GraphServiceClient client = new GraphServiceClient(clientSecretCredentials);
+            using var client = new GraphServiceClient(_clientCredentials);
 
             var requestBody = new User
             {
@@ -68,7 +64,7 @@ namespace CustomerRegistration
             };
             try
             {
-                var result = client.Users[req.Id.ToString()].ToPatchRequestInformation(requestBody);
+                var result = client.Users[req.Id.ToString()].PatchAsync(requestBody);
             }
             catch (ODataError ex)
             {
@@ -92,5 +88,5 @@ public record UserRequest
 
 public record UserUpdateRequest : UserRequest
 {
-    public Guid Id { get; set; }
+    public Guid Id { get; init; }
 }
