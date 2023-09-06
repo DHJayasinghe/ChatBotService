@@ -1,0 +1,13 @@
+{
+  "IsEncrypted": false,
+  "Values": {
+    "AzureWebJobsStorage": "UseDevelopmentStorage=true",
+    "FUNCTIONS_WORKER_RUNTIME": "dotnet",
+    "AzureAD:TenantId": "AD_TENANT_ID",
+    "AzureAD:ClientId": "CLIENT_ID",
+    "AzureAD:ClientSecret": "CLIENT_SECRET"
+  },
+  "ConnectionStrings": {
+    "CosmosDB": "COSMOSDB_CONNECTION_STRING"
+  }
+}
