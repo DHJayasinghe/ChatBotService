@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 
 namespace CustomerRegistration;
+
 public class Company
 {
     public string id { get; set; }

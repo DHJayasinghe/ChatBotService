@@ -75,12 +75,13 @@ namespace CustomerRegistration
 
             companyLinks.ForEach(link => link.Active = user.active);
 
+            string mailNickName = user.emailAddress.Replace("@", ".");
             var requestBody = new Microsoft.Graph.Models.User
             {
-                AccountEnabled = true,
-                DisplayName = user.firstName + " " + user.lastName,
-                MailNickname = user.firstName,
-                UserPrincipalName = user.firstName + "@iamdhanukagmail.onmicrosoft.com",
+                AccountEnabled = user.active,
+                DisplayName = $"{user.firstName} {user.lastName}",
+                MailNickname = mailNickName,
+                UserPrincipalName = $"{mailNickName}@iamdhanukagmail.onmicrosoft.com",
             };
             try
             {
@@ -101,9 +102,9 @@ namespace CustomerRegistration
             return new OkResult();
         }
 
-        private async Task<List<Usercompanyassoc>> GetCompanyLinksAsync(Microsoft.Azure.Cosmos.Container userContainer, User user)
+        private async Task<List<Usercompanyassoc>> GetCompanyLinksAsync(Container userContainer, User user)
         {
-            QueryDefinition queryDefinition = new QueryDefinition("SELECT * FROM c WHERE c.RecruiterId = @recruiterId")
+            QueryDefinition queryDefinition = new QueryDefinition("SELECT * FROM c WHERE c.recruiterid = @recruiterId")
                .WithParameter("@recruiterId", user.id);
 
             using var feedIterator = userContainer.GetItemQueryIterator<Usercompanyassoc>(queryDefinition);

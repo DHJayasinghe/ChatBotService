@@ -58,7 +58,7 @@ public class CompanyManagementFunction
     {
         await userCompanyContainer.CreateItemAsync(new Usercompanyassoc
         {
-            Id = Guid.NewGuid().ToString(),
+            Id = user.id,
             CompanyId = company.id,
             RecruiterId = user.id,
             Active = true
@@ -68,13 +68,14 @@ public class CompanyManagementFunction
     private async Task<bool> SaveUserAsync(User user, Container clientContainer, ILogger logger)
     {
         using var client = new GraphServiceClient(_clientCredentials);
+        string mailNickName = user.emailAddress.Replace("@", ".");
 
         var requestBody = new Microsoft.Graph.Models.User
         {
             AccountEnabled = true,
             DisplayName = user.firstName + " " + user.lastName,
-            MailNickname = user.firstName,
-            UserPrincipalName = user.firstName + "@iamdhanukagmail.onmicrosoft.com",
+            MailNickname = mailNickName,
+            UserPrincipalName = $"{mailNickName}@iamdhanukagmail.onmicrosoft.com",
             PasswordProfile = new PasswordProfile
             {
                 ForceChangePasswordNextSignIn = true,
